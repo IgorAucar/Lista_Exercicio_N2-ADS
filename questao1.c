@@ -117,7 +117,7 @@ Elemento* busca_contato(Elemento* lista) {
 }
 
 Elemento* remove_contato(Elemento* lista) {
-    printf("\n--- Remover Contato ---\n");
+    printf("\n--- Remover o Contato ---\n");
     char nomeBusca[41];
     printf("Digite o nome a remover: ");
     fgets(nomeBusca, 41, stdin);
