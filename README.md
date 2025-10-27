@@ -1,3 +1,6 @@
+FEITO POR IGOR ABDALLA AUCAR
+
+
 1. O que significa alocação estática de memória para um conjunto de elementos?
     R= Alocação estática de memória é quando o espaço necessário para armazenar dados é definido antes da execução do programa, geralmente na compilação. O tamanho é fixo e não pode ser alterado depois. Isso torna o acesso rápido e simples, mas limita a flexibilidade e pode desperdiçar memória se o tamanho não for bem calculado
     MAZIERO, Carlos. Sistemas Operacionais: Conceitos e Mecanismos. Curitiba: UFPR, 2019.
