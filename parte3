@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+typedef struct Node {
+    double value;
+    struct Node* next;
+} Node;
+
+typedef struct {
+    Node* top;
+} Stack;
+
+// Cria uma nova pilha vazia
+Stack* createStack() {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    if (!stack) {
+        fprintf(stderr, "Erro: Falha ao alocar memoria para a pilha.\n");
+        exit(EXIT_FAILURE);
+    }
+    stack->top = NULL;
+    return stack;
+}
+
+// Adiciona um valor ao topo da pilha
+void push(Stack* stack, double value) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    if (!newNode) {
+        fprintf(stderr, "Erro: Falha ao alocar memoria para o nodo.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->value = value;
+    newNode->next = stack->top;
+    stack->top = newNode;
+}
+
+// Remove e retorna o valor do topo da pilha
+double pop(Stack* stack) {
+    if (stack->top == NULL) {
+        fprintf(stderr, "Erro: Tentativa de desempilhar de uma pilha vazia.\n");
+        exit(EXIT_FAILURE);
+    }
+    Node* temp = stack->top;
+    double value = temp->value;
+    stack->top = temp->next;
+    free(temp);
+    return value;
+}
+
+int isEmpty(Stack* stack) {
+    return stack->top == NULL;
+}
+
+// Libera toda a memória da pilha
+void freeStack(Stack* stack) {
+    while (!isEmpty(stack)) {
+        pop(stack);
+    }
+    free(stack);
+}
+
+// Função que avalia uma expressão em RPN
+double evaluateRPN(char* expression) {
+    Stack* stack = createStack();
+    char* token = strtok(expression, " ");
+    
+    while (token != NULL) {
+        // Se for operador
+        if (strlen(token) == 1 && strchr("+-*/", token[0])) {
+            if (isEmpty(stack)) {
+                fprintf(stderr, "Erro: Expressao malformada (operandos insuficientes para o operador '%c').\n", token[0]);
+                freeStack(stack);
+                exit(EXIT_FAILURE);
+            }
+            double val2 = pop(stack);
+            if (isEmpty(stack)) {
+                fprintf(stderr, "Erro: Expressao malformada (operandos insuficientes para o operador '%c').\n", token[0]);
+                freeStack(stack);
+                exit(EXIT_FAILURE);
+            }
+            double val1 = pop(stack);
+            double result;
+
+            switch (token[0]) {
+                case '+': result = val1 + val2; break;
+                case '-': result = val1 - val2; break;
+                case '*': result = val1 * val2; break;
+                case '/':
+                    if (val2 == 0) {
+                        fprintf(stderr, "Erro: Tentativa de divisao por zero.\n");
+                        freeStack(stack);
+                        exit(EXIT_FAILURE);
+                    }
+                    result = val1 / val2;
+                    break;
+                default:
+                    fprintf(stderr, "Erro: Operador invalido '%s'.\n", token);
+                    freeStack(stack);
+                    exit(EXIT_FAILURE);
+            }
+
+            push(stack, result);
+        } else {
+            // Se for número
+            char* endptr;
+            double num = strtod(token, &endptr);
+            if (*endptr != '\0') {
+                fprintf(stderr, "Erro: Token invalido '%s'.\n", token);
+                freeStack(stack);
+                exit(EXIT_FAILURE);
+            }
+            push(stack, num);
+        }
+        token = strtok(NULL, " ");
+    }
+
+    // Verifica se há exatamente um valor restante
+    if (isEmpty(stack)) {
+        fprintf(stderr, "Erro: Expressao malformada (nenhum resultado encontrado).\n");
+        freeStack(stack);
+        exit(EXIT_FAILURE);
+    }
+
+    double result = pop(stack);
+
+    if (!isEmpty(stack)) {
+        fprintf(stderr, "Erro: Expressao malformada (operandos restantes na pilha).\n");
+        freeStack(stack);
+        exit(EXIT_FAILURE);
+    }
+
+    freeStack(stack);
+    return result;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Uso: %s \"<expressao RPN>\"\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    // Copia a expressão para poder usar strtok sem alterar o argv original
+    char* expr = strdup(argv[1]);
+    if (!expr) {
+        fprintf(stderr, "Erro: Falha ao alocar memoria.\n");
+        return EXIT_FAILURE;
+    }
+
+    double result = evaluateRPN(expr);
+    printf("Resultado: %.2f\n", result);
+
+    free(expr);
+    return EXIT_SUCCESS;
+}
